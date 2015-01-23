@@ -11,45 +11,17 @@
         for( var i = 0; i<floors.length; i++){
             var floor = floors[i];
      
-            floor.on('up_button_pressed', function(){
+            floor.on('up_button_pressed down_button_pressed', function(){
 
-                if( self.pickupQueue.indexOf(this.floorNum() == -1 )){
-                    for( var j = 0; j<elevators.length; j++){
-                        var elevator = elevators[j];
+              //  if( self.pickupQueue.indexOf(this.floorNum() == -1 )){
+                    var elevator = self.pickPickupElevator(this.floorNum());
 
-                        if( elevator.loadFactor() < 1  ){
+                     self.setIndicators(elevator, true);
 
-                            self.setIndicators(elevator, true);
-
-                            self.goToFloor( elevator, this.floorNum());
-                            self.pickupQueue.push(this.floorNum());
-                            break;
-                        }
-                    }
-                }
-            });
-            
-            
-            
-            floor.on('down_button_pressed', function(){
-                if( self.pickupQueue.indexOf(this.floorNum() == -1 )){
-                    for( var j = 0; j<elevators.length; j++){
-
-
-                        var elevator = elevators[elevators.length - j -1 ];
-
-                        if( elevator.loadFactor() < 1 ){
-
-                            self.setIndicators(elevator, false);
-
-                            self.goToFloor( elevator, this.floorNum() );
-                            self.pickupQueue.push(this.floorNum());
-                            break;
-                        }
-                    }
-                }
-            }); 
-                     
+                    self.goToFloor( elevator, this.floorNum());
+                    self.pickupQueue.push(this.floorNum());
+               // }
+            });         
         }
             
         
@@ -59,7 +31,7 @@
             elevator.requestQueue = [];
 
 
-            elevator.on('floor_button_pressed ', function(floorNum){
+            elevator.on('floor_button_pressed', function(floorNum){
                if( this.destinationQueue.indexOf(floorNum) == -1 && this.destinationQueue.length < floors.length ){
                    
                    self.removeDestinationFromOthers(floorNum);
@@ -70,11 +42,13 @@
                 
            });
             
+           /* 
             elevator.on("idle", function() {
                 // The elevator is idle, so let's go to all the floors (or did we forget one?)
 
                 elevator.goToFloor(i);
             });
+*/
 
        /*    elevator.on('passing_floor', function(floorNum, direction){
                 if( this.loadFactor() < 1 && this.destinationQueue.indexOf(floorNum) != -1 ){
@@ -111,9 +85,10 @@
         
     },
     setIndicators: function(elevator, up){
-        console.log('indicate', up);
+ /*       console.log('indicate', up);
          elevator.goingUpIndicator(up);
         elevator.goingDownIndicator(!up);
+        */
     },
     update: function(dt, elevators, floors) {
         // We normally don't need to do anything here
@@ -152,8 +127,12 @@
             newQueue= above.concat(below);
         }
 
+
+
         elevator.destinationQueue = newQueue;
         elevator.checkDestinationQueue();
+
+          console.log('destination', elevator.destinationQueue);
     },
     notInQueue: function(floorNum){
         for( var i =0;i<this.elevators.length; i++){
@@ -198,5 +177,20 @@
                 elevator.requestQueue.splice(index2, 1);
             }
         }
+    },
+    pickPickupElevator: function( floorNum ){
+
+        for( var j = 0; j< this.elevators.length; j++){
+            var elevator = this.elevators[j];
+
+            if( elevator.loadFactor() < 1  ){
+                return elevator;
+                
+                break;
+            }
+        }
+
+        // All elevators are full
+        return this.elevators[0];
     }
 }
